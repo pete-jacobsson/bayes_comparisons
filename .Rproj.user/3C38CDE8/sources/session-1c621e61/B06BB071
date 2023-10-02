@@ -3,7 +3,7 @@
     "path": "~/Documents/GitHub/bayes_comparisons/fake_lab1_scenario_1.qmd",
     "project_path": "fake_lab1_scenario_1.qmd",
     "type": "quarto_markdown",
-    "hash": "919600804",
+    "hash": "0",
     "contents": "",
     "dirty": false,
     "created": 1696248672731.0,
@@ -13,15 +13,15 @@
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "24,0",
-        "scrollLine": "0"
+        "cursorPosition": "46,29",
+        "scrollLine": "23"
     },
     "folds": "",
-    "lastKnownWriteTime": 1696249167,
+    "lastKnownWriteTime": 1696251235,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1696249167302,
+    "last_content_update": 1696251235768,
     "read_only": false,
     "read_only_alternatives": []
 }

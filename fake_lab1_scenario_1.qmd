@@ -19,8 +19,39 @@ library(rjags)
 
 ```{r}
 ## Get the data
-f1l_sc1_url <- "https://raw.githubusercontent.com/pete-jacobsson/fake_lab/main/fake1_scenario1.csv" 
-f1l_sc1 <- read_csv(url(f1l_sc1_url))
+fl1_sc1_url <- "https://raw.githubusercontent.com/pete-jacobsson/fake_lab/main/fake1_scenario1.csv" 
+fl1_sc1 <- read_csv(url(fl1_sc1_url))
 
 ```
+
+### Now set up the model
+
+```{r}
+n_total <- nrow(fl1_sc1)
+n_instruments <- length(unique(fl1_sc1$instrument))
+n_operators <- length(unique(fl1_sc1$operator))
+
+measurement_mean <- mean(fl1_sc1$measurement)
+measurement_sd <- sd(fl1_sc1$measurement)
+
+```
+
+### Prepare stuff for going into JAGS
+```{r}
+data_list <- list(
+  measurement <- fl1_sc1$measurement,
+  instrument <- fl1_sc1$instrument,
+  operator <- fl1_sc1$operator,
+  n_total <- n_total,
+  n_instruments <- n_instruments,
+  n_operators <- n_operators,
+  measurement_mean <- measurement_mean,
+  measurement_sd <- measurement_sd
+)
+```
+
+
+
+
+
 
