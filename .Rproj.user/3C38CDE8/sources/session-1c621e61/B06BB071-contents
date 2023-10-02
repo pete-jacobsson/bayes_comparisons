@@ -1,0 +1,26 @@
+---
+title: "Fake Lab 1 Scenarios 1"
+author: "Piotr Jacobsson"
+format: html
+---
+
+## Introduction
+
+This is a basic model covering single lab with no offsets in place. Our aim is to check that we get the correct estimates based on the data provided. 
+
+```{r}
+## Load packages
+
+library(tidyverse)
+library(rjags)
+
+```
+
+
+```{r}
+## Get the data
+f1l_sc1_url <- "https://raw.githubusercontent.com/pete-jacobsson/fake_lab/main/fake1_scenario1.csv" 
+f1l_sc1 <- read_csv(url(f1l_sc1_url))
+
+```
+
