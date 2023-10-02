@@ -13,6 +13,7 @@ This is a basic model covering single lab with no offsets in place. Our aim is t
 
 library(tidyverse)
 library(rjags)
+library(runjags)
 
 ```
 
@@ -27,6 +28,11 @@ fl1_sc1 <- read_csv(url(fl1_sc1_url))
 ### Now set up the model
 
 ```{r}
+
+measurement <- fl1_sc1$measurement
+instrument <- as.numeric(as.factor(fl1_sc1$instrument))
+operator <- as.numeric(as.factor(fl1_sc1$operator))
+
 n_total <- nrow(fl1_sc1)
 n_instruments <- length(unique(fl1_sc1$instrument))
 n_operators <- length(unique(fl1_sc1$operator))
@@ -39,14 +45,14 @@ measurement_sd <- sd(fl1_sc1$measurement)
 ### Prepare stuff for going into JAGS
 ```{r}
 data_list <- list(
-  measurement <- fl1_sc1$measurement,
-  instrument <- fl1_sc1$instrument,
-  operator <- fl1_sc1$operator,
-  n_total <- n_total,
-  n_instruments <- n_instruments,
-  n_operators <- n_operators,
-  measurement_mean <- measurement_mean,
-  measurement_sd <- measurement_sd
+  measurement = measurement,
+  instrument = instrument,
+  operator = operator,
+  n_total = n_total,
+  n_instruments = n_instruments,
+  n_operators = n_operators,
+  measurement_mean = measurement_mean #,
+  #measurement_sd <- measurement_sd
 )
 ```
 
@@ -56,10 +62,9 @@ Core model 1 - the basic JAGS model. No treatment of SDs, no normalization.
 model_string <- "
   model {
     for (i in 1:n_total) {
-      measurement[i] ~ dnorm( mu[i], 1 / sigma ^ 2)   ###JAGS uses precision (1/sd)
-      mu[i] <- a0 + a1[x1[i]] + a2[x2[i]] + a1a2[x1[i], x2[i]]
+      measurement[i] ~ dnorm( mu[i], 1 / 500)
+      mu[i] <- a0 + a1[instrument[i]] + a2[operator[i]] + a1a2[instrument[i], operator[i]]
     }
-    sigma ~ dunif(0, 500)
     a0 ~ dnorm(measurement_mean, 1 / 500)
     #
     for (j1 in 1:n_instruments) { a1[j1] ~ dnorm(0, 1/500) }
@@ -78,9 +83,17 @@ writeLines(model_string, con = "core_model_1.txt")
 
 ### Run model
 ```{r}
-parameters <- c("a0", "a1", "a2", "a1a2", "sigma")
+parameters <- c("a0", "a1", "a2", "a1a2")
 adapt_steps <- 1000
-burn_in_steps <- 
+burn_in_steps <- 2000
+
+run_jags_out <- run.jags(
+  model = "core_model_1.txt",
+  monitor = parameters,
+  data = data_list
+)
+
+testJAGS()
 ```
 
 
