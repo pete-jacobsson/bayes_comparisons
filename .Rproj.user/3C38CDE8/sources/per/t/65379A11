@@ -1,0 +1,28 @@
+{
+    "id": "65379A11",
+    "path": null,
+    "project_path": null,
+    "type": "object_explorer",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1696253338586.0,
+    "source_on_save": false,
+    "relative_order": 7,
+    "properties": {
+        "id": "afb58389bc004416b4232f1e4bccee33",
+        "name": "coda_samples",
+        "title": "coda_samples",
+        "language": "R",
+        "source_window_id": "",
+        "Source": "Source"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1696253254,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1696253338586,
+    "read_only": false,
+    "read_only_alternatives": []
+}
