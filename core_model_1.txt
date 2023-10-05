@@ -1,10 +1,11 @@
 
   model {
     for (i in 1:n_total) {
-      measurement[i] ~ dnorm( mu[i], 1 / 50)
+      measurement[i] ~ dnorm( mu[i], 1 / resid_sigma)
       mu[i] <- a0 + a1[instrument[i]] + a2[operator[i]]
       }
     a0 ~ dnorm(measurement_mean, 1 / 50)
+    resid_sigma ~ dunif(0, 50)
     #
     for (j1 in 1:n_instruments) { 
       a1[j1] ~ dnorm(0, 1 / a1sd[j1]) 

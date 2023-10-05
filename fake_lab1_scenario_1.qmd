@@ -62,10 +62,11 @@ Core model 1 - the basic JAGS model. No treatment of SDs, no normalization.
 model_string <- "
   model {
     for (i in 1:n_total) {
-      measurement[i] ~ dnorm( mu[i], 1 / 50)
+      measurement[i] ~ dnorm( mu[i], 1 / resid_sigma)
       mu[i] <- a0 + a1[instrument[i]] + a2[operator[i]]
       }
     a0 ~ dnorm(measurement_mean, 1 / 50)
+    resid_sigma ~ dunif(0, 50)
     #
     for (j1 in 1:n_instruments) { 
       a1[j1] ~ dnorm(0, 1 / a1sd[j1]) 
@@ -98,7 +99,7 @@ writeLines(model_string, con = "core_model_1.txt")
 
 ### Run model
 ```{r}
-parameters <- c("b0", "b1", "b2", "a1sd", "a2sd")
+parameters <- c("b0", "b1", "b2", "a1sd", "a2sd", "resid_sigma")
 adapt_steps <- 1000
 burn_in_steps <- 2000
 
@@ -106,10 +107,12 @@ run_jags_out <- run.jags(
   model = "core_model_1.txt",
   monitor = parameters,
   data = data_list,
+  n.chains = 4,
   adapt = 1000,
   burnin = 10000,
   sample = 10000,
-  thin = 10
+  thin = 10,
+  method = "parallel"
 )
 
 testJAGS()
@@ -122,9 +125,9 @@ coda_samples <- as.mcmc.list(run_jags_out)
 
 autocorr.plot(coda_samples)
 effectiveSize(coda_samples)
-summary(coda_samples)
 gelman.plot(coda_samples)
 traceplot(coda_samples)
+summary(coda_samples)
 ```
 
 
