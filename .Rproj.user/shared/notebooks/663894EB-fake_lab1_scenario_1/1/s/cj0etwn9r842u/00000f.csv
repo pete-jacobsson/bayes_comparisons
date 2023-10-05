@@ -19,7 +19,7 @@
 "
 "1","Following the progress of chain 1 (the program will wait for all chains to finish before continuing):
 "
-"1","Welcome to JAGS 4.3.0 on Thu Oct  5 16:18:38 2023"
+"1","Welcome to JAGS 4.3.0 on Thu Oct  5 16:38:49 2023"
 "1","
 "
 "1",""
@@ -33,16 +33,16 @@ Loading module: bugs: ok
 Graph information:
    Observed stochastic nodes: 1000
    Unobserved stochastic nodes: 18
-   Total graph size: 3071
+   Total graph size: 3073
 . Reading parameter file inits1.txt
 . Initializing model
 . Adapting 1000
 -------------------------------------------------| 1000
 ++++"
-"1","++++++++++++++++"
 "1","+++++++++++++"
+"1","++++++++++++"
 "1","++++++++++++++"
-"1","+++ 100%"
+"1","+++++++ 100%"
 "1","
 "
 "1",""
@@ -51,15 +51,12 @@ Graph information:
 -------------------------------------------------| 10000
 *"
 "1","*"
+"1","**"
+"1","**"
+"1","**"
 "1","*"
-"1","*"
 "1","**"
 "1","*"
-"1","*"
-"1","**"
-"1","**"
-"1","**"
-"1","**"
 "1","**"
 "1","**"
 "1","**"
@@ -67,15 +64,20 @@ Graph information:
 "1","**"
 "1","**"
 "1","**"
+"1","*"
 "1","**"
 "1","**"
 "1","**"
+"1","*"
+"1","**"
+"1","**"
+"1","*"
 "1","**"
 "1","**"
 "1","**"
-"1","**"
-"1","**"
-"1","**"
+"1","*"
+"1","*"
+"1","*"
 "1","**"
 "1","* 100%"
 "1","
@@ -105,61 +107,3 @@ Graph information:
 "1","*"
 "1","*"
 "1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","*"
-"1","* 100%"
-"1","
-"
-"1",""
-"1",". . . . Updating 0
-. Deleting model
-. "
-"1","
-"
-"1","All chains have finished
-"
-"1","Simulation complete.  Reading coda files...
-"
-"1","Coda files loaded successfully
-"
-"1","Calculating summary statistics...
-"
-"1","Calculating the Gelman-Rubin statistic for 18 variables....
-"
-"1","Finished running the simulation
-"
-"0","testJAGS()"
-"1","You are using R version 4.1.2 (2021-11-01) on a unix machine, with the RStudio GUI
-"
-"1","JAGS version 4.3.0 found successfully using the command '/usr/bin/jags'
-"
-"1","The rjags package is installed
-"
