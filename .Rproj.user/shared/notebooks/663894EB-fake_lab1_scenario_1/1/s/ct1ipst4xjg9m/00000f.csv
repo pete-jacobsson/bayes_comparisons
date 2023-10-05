@@ -1,0 +1,9 @@
+"0","###Join HPD areas to jags_results
+jags_results_hpd <- inner_join(
+  jags_results, hpd_extract
+) |>
+  mutate(
+    is_hpd = if_else(value > lower & value < upper, TRUE, FALSE)
+  )
+"
+"2","Joining with `by = join_by(name)`"

@@ -74,6 +74,13 @@ model_string <- "
     # for (j1 in 1:n_instruments) { for (j2 in 1:n_operators) {
     # a1a2[j1, j2] ~ dnorm(0, 1/50)
     # }}
+    ##Sum zero constraints
+    for (j1 in 1:n_instruments) { for (j2 in 1:n_operators) {
+      m[j1, j2] <- a0 + a1[j1] + a2[j2]
+    }}
+    b0 <- mean(m[1:n_instruments, 1:n_operators])
+    for ( j1 in 1:n_instruments ) { b1[j1] <- mean( m[j1,n_operators] ) - b0 }
+    for ( j2 in 1:n_operators ) { b2[j2] <- mean( m[1:n_instruments,j2] ) - b0 }
 }
 "
 
@@ -83,7 +90,7 @@ writeLines(model_string, con = "core_model_1.txt")
 
 ### Run model
 ```{r}
-parameters <- c("a0", "a1", "a2", "a1a2")
+parameters <- c("b0", "b1", "b2")
 adapt_steps <- 1000
 burn_in_steps <- 2000
 
@@ -91,9 +98,9 @@ run_jags_out <- run.jags(
   model = "core_model_1.txt",
   monitor = parameters,
   data = data_list,
-  adapt = 10000,
+  adapt = 1000,
   burnin = 10000,
-  sample = 100000,
+  sample = 10000,
   thin = 10
 )
 
@@ -112,19 +119,93 @@ autocorr.plot(coda_samples)
 effectiveSize(coda_samples)
 summary(coda_samples)
 gelman.plot(coda_samples)
+traceplot(coda_samples)
 ```
 
 
 ```{r}
-jags_results <- as.matrix(coda_samples)
+jags_results <- as.matrix(coda_samples) |>
+  as.data.frame()
 
-jags_results[,5] |>
-  hist()
+colnames(jags_results) <- c( "baseline", "instrument_1", "instrument_2",
+                             "instrument_3", "instrument_4", "instrument_5",
+                             "operator_1", "operator_2", "operator_3")
+
+jags_results <- jags_results |>
+  pivot_longer(cols = everything()) |>
+  mutate(value = round(value, digits = 2)) |>
+  group_by(name, value) |>
+  summarize(
+    counts = n()
+  )
 
 ```
 
 
 
+
+
+
+```{r}
+
+###Extract HPD area
+hpd_extract <- cbind(HPDinterval(coda_samples)[[1]], 
+                     HPDinterval(coda_samples)[[2]]) |>
+  as.data.frame() |>
+  rename("lower_1" = 1, "upper_1" = 2, "lower_2" = 3, "upper_2" = 4) |>
+  mutate(
+    lower = (lower_1 + lower_2) / 2,
+    upper = (upper_1 + upper_2) / 2) |>
+  rownames_to_column("name") |>
+  select(name, lower, upper) |>
+  mutate(
+    name = case_when(
+      name == "b0" ~ "baseline",
+      name == "b1[1]" ~ "instrument_1",
+      name == "b1[2]" ~ "instrument_2",
+      name == "b1[3]" ~ "instrument_3",
+      name == "b1[4]" ~ "instrument_4",
+      name == "b1[5]" ~ "instrument_5",
+      name == "b2[1]" ~ "operator_1",
+      name == "b2[2]" ~ "operator_2",
+      name == "b2[3]" ~ "operator_3"
+    )
+  )
+
+
+
+```
+
+```{r}
+###Join HPD areas to jags_results
+jags_results_hpd <- inner_join(
+  jags_results, hpd_extract
+) |>
+  mutate(
+    is_hpd = if_else(value > lower & value < upper, TRUE, FALSE)
+  )
+
+```
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+###Check fig
+jags_results_hpd |>
+  filter(str_detect(name, "operator")) |>
+  ggplot(aes(x = value, y = counts, fill = is_hpd)) +
+  geom_histogram(stat = "identity") +
+  geom_vline(xintercept = c(-2.5, 2.5)) +
+  facet_grid(rows=  vars(name))
+```
 
 
 
