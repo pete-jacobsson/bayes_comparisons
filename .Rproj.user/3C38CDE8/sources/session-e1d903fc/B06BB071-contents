@@ -1,0 +1,229 @@
+---
+title: "Fake Lab 1 Scenarios 1"
+author: "Piotr Jacobsson"
+format: html
+---
+
+## Introduction
+
+This is a basic model covering single lab with no offsets in place. Our aim is to check that we get the correct estimates based on the data provided. 
+
+```{r}
+## Load packages
+
+library(tidyverse)
+library(rjags)
+library(runjags)
+
+```
+
+
+```{r}
+## Get the data
+fl1_sc1_url <- "https://raw.githubusercontent.com/pete-jacobsson/fake_lab/main/fake1_scenario1.csv" 
+fl1_sc1 <- read_csv(url(fl1_sc1_url))
+
+```
+
+### Now set up the model
+
+```{r}
+
+measurement <- fl1_sc1$measurement
+instrument <- as.numeric(as.factor(fl1_sc1$instrument))
+operator <- as.numeric(as.factor(fl1_sc1$operator))
+
+n_total <- nrow(fl1_sc1)
+n_instruments <- length(unique(fl1_sc1$instrument))
+n_operators <- length(unique(fl1_sc1$operator))
+
+measurement_mean <- mean(fl1_sc1$measurement)
+measurement_sd <- sd(fl1_sc1$measurement)
+
+```
+
+### Prepare stuff for going into JAGS
+```{r}
+data_list <- list(
+  measurement = measurement,
+  instrument = instrument,
+  operator = operator,
+  n_total = n_total,
+  n_instruments = n_instruments,
+  n_operators = n_operators,
+  measurement_mean = measurement_mean #,
+  #measurement_sd <- measurement_sd
+)
+```
+
+### Write JAGS model Core model 1
+Core model 1 - the basic JAGS model. No treatment of SDs, no normalization.
+```{r}
+model_string <- "
+  model {
+    for (i in 1:n_total) {
+      measurement[i] ~ dnorm( mu[i], 1 / (ySigma[instrument[i], operator[i]]) ^ 2)
+      mu[i] <- a0 + a1[instrument[i]] + a2[operator[i]]
+    }
+    
+    for (j1 in 1:n_instruments) { for (j2 in 1:n_operators) {
+      ySigma[j1, j2] ~ dgamma(1.05, 0.01)
+    }}  
+    a0 ~ dnorm(measurement_mean, 1 / 50)
+
+    #
+    for (j1 in 1:n_instruments) { 
+      a1[j1] ~ dnorm(0, 1 / a1sd) 
+    }
+    a1sd ~ dgamma(1.05, 0.01)
+    
+    #
+    for (j2 in 1:n_operators) { 
+      a2[j2] ~ dnorm(0, 1 / a2sd) 
+    }
+    a2sd ~ dgamma(1.05, 0.01)
+    
+    #
+    # for (j1 in 1:n_instruments) { for (j2 in 1:n_operators) {
+    # a1a2[j1, j2] ~ dnorm(0, 1/50)
+    # }}
+    ##Sum zero constraints
+    for (j1 in 1:n_instruments) { for (j2 in 1:n_operators) {
+      m[j1, j2] <- a0 + a1[j1] + a2[j2]
+    }}
+    b0 <- mean(m[1:n_instruments, 1:n_operators])
+    for ( j1 in 1:n_instruments ) { b1[j1] <- mean( m[j1,n_operators] ) - b0 }
+    for ( j2 in 1:n_operators ) { b2[j2] <- mean( m[1:n_instruments,j2] ) - b0 }
+}
+"
+
+writeLines(model_string, con = "core_model_1.txt")
+```
+
+
+### Run model
+```{r}
+parameters <- c("b0", "b1", "b2", "ySigma", "a1sd", "a2sd")
+adapt_steps <- 1000
+burn_in_steps <- 2000
+
+run_jags_out <- run.jags(
+  model = "core_model_1.txt",
+  monitor = parameters,
+  data = data_list,
+  n.chains = 4,
+  adapt = 1000,
+  burnin = 10000,
+  sample = 10000,
+  thin = 10,
+  method = "parallel"
+)
+
+testJAGS()
+```
+
+### Extract and view JAGS output
+```{r}
+coda_samples <- as.mcmc.list(run_jags_out)
+
+
+autocorr.plot(coda_samples)
+effectiveSize(coda_samples)
+gelman.plot(coda_samples)
+traceplot(coda_samples)
+summary(coda_samples)
+```
+
+
+```{r}
+jags_results <- as.matrix(coda_samples) |>
+  as.data.frame()
+
+colnames(jags_results) <- c( "baseline", "instrument_1", "instrument_2",
+                             "instrument_3", "instrument_4", "instrument_5",
+                             "operator_1", "operator_2", "operator_3")
+
+jags_results <- jags_results |>
+  pivot_longer(cols = everything()) |>
+  mutate(value = round(value, digits = 2)) |>
+  group_by(name, value) |>
+  summarize(
+    counts = n()
+  )
+
+```
+
+
+
+
+
+
+```{r}
+
+###Extract HPD area
+hpd_extract <- cbind(HPDinterval(coda_samples)[[1]], 
+                     HPDinterval(coda_samples)[[2]]) |>
+  as.data.frame() |>
+  rename("lower_1" = 1, "upper_1" = 2, "lower_2" = 3, "upper_2" = 4) |>
+  mutate(
+    lower = (lower_1 + lower_2) / 2,
+    upper = (upper_1 + upper_2) / 2) |>
+  rownames_to_column("name") |>
+  select(name, lower, upper) |>
+  mutate(
+    name = case_when(
+      name == "b0" ~ "baseline",
+      name == "b1[1]" ~ "instrument_1",
+      name == "b1[2]" ~ "instrument_2",
+      name == "b1[3]" ~ "instrument_3",
+      name == "b1[4]" ~ "instrument_4",
+      name == "b1[5]" ~ "instrument_5",
+      name == "b2[1]" ~ "operator_1",
+      name == "b2[2]" ~ "operator_2",
+      name == "b2[3]" ~ "operator_3"
+    )
+  )
+
+
+
+```
+
+```{r}
+###Join HPD areas to jags_results
+jags_results_hpd <- inner_join(
+  jags_results, hpd_extract
+) |>
+  mutate(
+    is_hpd = if_else(value > lower & value < upper, TRUE, FALSE)
+  )
+
+```
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+###Check fig
+jags_results_hpd |>
+  filter(str_detect(name, "operator")) |>
+  ggplot(aes(x = value, y = counts, fill = is_hpd)) +
+  geom_histogram(stat = "identity") +
+  geom_vline(xintercept = c(-2.5, 2.5)) +
+  facet_grid(rows=  vars(name))
+```
+
+```{r}
+rate <- (5 + sqrt(5 ^ 2 + 4 * 100 ^ 2)) / (2 * 100 ^ 2)
+shape <- 1 + 5 * rate
+
+curve(dgamma(x, shape, rate), from = 0, to = 50)
+```
+
+

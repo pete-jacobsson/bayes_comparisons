@@ -1,0 +1,17 @@
+# bayes_comparisons
+ A project exploring the use of Bayesian hierarchical models to run lab comparisons
+
+
+## Introduction
+This project covers determining magnitude of biases and excess variability in simulated laboratory contexts by using Bayesian multilevel models, Following Kruschke (2015). I hope to update the tech at some point to using tidier approaches.
+
+
+## Methodology
+
+
+
+## How to use the code
+
+
+
+## Credits

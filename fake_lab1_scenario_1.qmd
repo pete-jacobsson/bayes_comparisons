@@ -62,22 +62,26 @@ Core model 1 - the basic JAGS model. No treatment of SDs, no normalization.
 model_string <- "
   model {
     for (i in 1:n_total) {
-      measurement[i] ~ dnorm( mu[i], 1 / resid_sigma)
+      measurement[i] ~ dnorm( mu[i], 1 / (ySigma[instrument[i], operator[i]]) ^ 2)
       mu[i] <- a0 + a1[instrument[i]] + a2[operator[i]]
-      }
+    }
+    
+    for (j1 in 1:n_instruments) { for (j2 in 1:n_operators) {
+      ySigma[j1, j2] ~ dgamma(1.05, 0.01)
+    }}  
     a0 ~ dnorm(measurement_mean, 1 / 50)
-    resid_sigma ~ dgamma(1.05, 0.01)
+
     #
     for (j1 in 1:n_instruments) { 
-      a1[j1] ~ dnorm(0, 1 / a1sd[j1]) 
-      a1sd[j1] ~ dgamma(1.05, 0.01)
-      }
+      a1[j1] ~ dnorm(0, 1 / a1sd) 
+    }
+    a1sd ~ dgamma(1.05, 0.01)
     
     #
     for (j2 in 1:n_operators) { 
-      a2[j2] ~ dnorm(0, 1 / a2sd[j2]) 
-      a2sd[j2] ~ dgamma(1.05, 0.01)
-      }
+      a2[j2] ~ dnorm(0, 1 / a2sd) 
+    }
+    a2sd ~ dgamma(1.05, 0.01)
     
     #
     # for (j1 in 1:n_instruments) { for (j2 in 1:n_operators) {
@@ -99,7 +103,7 @@ writeLines(model_string, con = "core_model_1.txt")
 
 ### Run model
 ```{r}
-parameters <- c("b0", "b1", "b2", "a1sd", "a2sd", "resid_sigma")
+parameters <- c("b0", "b1", "b2", "ySigma", "a1sd", "a2sd")
 adapt_steps <- 1000
 burn_in_steps <- 2000
 

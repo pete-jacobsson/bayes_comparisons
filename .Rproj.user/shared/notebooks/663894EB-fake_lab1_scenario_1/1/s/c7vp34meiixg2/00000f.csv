@@ -12,4 +12,6 @@
 "0","  summarize("
 "0","    counts = n()"
 "0","  )"
-"2","`summarise()` has grouped output by 'name'. You can override using the `.groups` argument."
+"2","Error in `[.data.frame`(data, unique(names(data))) : 
+  undefined columns selected
+"

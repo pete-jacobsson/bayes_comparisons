@@ -1,0 +1,446 @@
+---
+title: "What's in a generic data analyst job description?"
+author: "Pete"
+date: "2023-09-25"
+categories: [Data Analytics, Project Log]
+execute:
+  message: false
+format: 
+  html: 
+    code-fold: true
+    code-overflow: scroll
+---
+
+
+```{r, include = FALSE}
+library(tidyverse)
+```
+
+## Why do this project?
+As some of you may know, I am looking for a job, with something in data analytics being one of the possibilities. Now, there is a lot of advice out there when it comes to job hunting and the big one is tailoring your CV to whatever job you're applying to. Indeed, with the advent of easy-to-access LLMs there are now tools to automate the process ([Teal comes to mind](https://www.tealhq.com/)). However, there is also another big lot of advice and that is that a lot of jobs never make it to the job board and that it is often best to work with a recruiter. Which also includes a CV, but this time with no hints as to how to tailor it.
+
+So I thought, how about working out what the average, generic data analyst job description looks like - what are the skills and tasks that come up most often. Given that I was thinking of going for a data analyst role, it was only fitting to approach the problem using data. Here is what I found in the process.
+
+## How to get the data? (aka the method section)
+From the get go the big problem was how to get the data. Now in principle I could sit down in front of Indeed, Glassdoor, or some other Linked In and start going through adverts for where I live - which happens to be western Switzerland. Now, this approach has a couple big drawbacks, the biggest being that it is slow. The second biggest being that it also introduces a lot of subjectivity. A slight variation would have been to paste the job descriptions into a file and then try to process them somehow - still slow and now I have a massive NLP exercise to deal with. Instead of doing all those things, I approached the problem from a more technical angle (consult the figure for the TLDR version). 
+
+The key was to get API access to job descriptions. There are a few services out there that offer that, however quite a few of them are paywalled. Still, where there is will to spend more than five minutes googling there is hope and thus I came across the [Adzuna](https://www.adzuna.ch/) website. After a quick API refresher I was able to get a whole collection of recent job descriptions... except the API never had any job descriptions, only links to posts and snippets of the first however many words or symbols of a description. At that stage I quit for the day.
+
+Coming back the next day, I approached the issue from a different angle. While the API didn't give full job descriptions it did supply links to individual pages. That's how the new plan got hatched: web scraping. After a few more refreshers (and a little while digging through Adzuna's CSS selectors) I managed to get the scraping function to work. There was one hiccup in that some of the links were for external sites, but this was easy to determine and filter away from the links themselves. 
+
+Thus the last remaining task was to deal with extracting the information from job descriptions. Now, a year earlier that would have been messy to say the least. However, since then, accessible LLMs became a thing. Coming off the back of [Isa Fulford's and Andrew Ng's course](https://www.deeplearning.ai/short-courses/chatgpt-prompt-engineering-for-developers/) I used GPT 3.5 Turbo to do the work for me. The prompt of course requires some iterating, but the summarizing capacity of the LLM meant that the job descriptions could be iterated over fast. The workflow as a whole took a couple hours to execute and yielded 159 job descriptions posted in early July 2023. In principle the process could be faster, however I made sure to include multiple "sleeps" in the process - after all Open AI API can only be called so many times per minute and I also wanted to limit the impact of the webscrape on Adzuna to something akin to a well-caffeinated human clicking too much. With the data in hand visualization was all that was left.
+
+I used R throughout, with a smattering of Python (wanted to check how R Studio's Python side would behave). All code is attached at the end of the post and, if you're interested, the actual work log can be found on my Github (apologies if some words might have evaded the profanity removal process prior to publishing).
+
+## Results
+
+As you can see from the graph below there are some expected and some less-expected outcomes from the exercise.
+
+```{r, warning=FALSE, message=FALSE}
+skills_df_url <- "https://raw.githubusercontent.com/pete-jacobsson/what_makes_a_data_analyst/main/skills_df.csv" 
+skills_df <- read_csv(url(skills_df_url))
+
+skills_df |>
+  head(28) |>
+  mutate(
+    term = as_factor(term)
+  ) |>
+  filter(term != "Analytics") |> ### This category is largest - which makes sense, but we know it from the job description :)
+  ggplot(aes(x = fct_infreq(term), y = count)) +
+  geom_bar(stat = 'identity', fill = "steelblue", color = "white") +
+  geom_text(aes(label = count), nudge_y = 2, size = 3) +
+  coord_flip() +
+  scale_x_discrete(limits = rev) +
+  theme_bw() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.border = element_blank(),
+    axis.line = element_line(colour = "grey50", size = 0.5),
+    text = element_text(family = "Corbel")#,
+    #axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size = 9)
+    ) +
+  labs(
+    x = "GPT-detected keyword",
+    y = "Count"
+  )
+```
+
+
+Let's start with the obvious and the expected. First off the bat, in the sample of 159 job descriptions, keywords relating to core soft skills were most common, with GPT detecting both interpersonal skills and communication skills in over eighty descriptions each. These are followed by business awareness. Python and knowledge of SQL come up as the two core hard skills and languages follow an expected pattern, with English in the fourth position, and German and French trailing. German and French are to be expected, given that I was scraping a Swiss job board. Last, Excel is present as the third most in demand tech skill. While this may come across as a surprise to some, in the core data analytics space this can be expected - after all, there is Excel and then there is Excel with all the added VBA bells and whistles and the tool still sees heavy usage (there is a reason why there are R packages dedicated to generating Excel files).
+
+Now let's talk about the surprises. The first major item off the bat is the low value assigned to curiosity - less than ten of the job descriptions noted curiosity as a required or desirable characteristic for a data analyst post. As a friend of mine pointed out, at face value this makes no sense in a job which is all about digging deep into research questions. Yes, you can do it without a curious mind, but chances are you will not enjoy the job and you will not reach your full potential. Now, it is possible that curiosity features low on the requirements list because it is an untestable characteristic. After all, at the level of the initial application anyone can claim that they have an endless streak of curiosity and most of the time they will believe it. What would be more concerning is if the hiring teams don't find curiosity an important characteristic in candidates and fail to evaluate for it throughout the application process.
+
+Linked to this is the low ranking of both research experience and data management skills. All the same arguments repeated above apply: the core of an analysts job should be doing research, hence I would have expected research experience to score more hits. Likewise, data management is essential to keeping the pipelines healthy and preventing bad stuff from happening. As such we could expect it to show up more often, even if not as an essential part of the job.
+
+The other item that surprised me was the continuing dominance of scripting languages over the out-of-the-box tools. Python is more sought after than Power BI and R is more sought after than Tableau. Hence, in this particular sample, knowing how to code goes a longer way towards fitting the job description than knowing how to use code-free data analytics tools. Furthermore, there are some other skills in there which suggest that hard technical skills, such as Cloud operations and API usage, may be sought after as part of a generic "data analyst" package. In other words, doing the Microsoft PL300 alone would be insufficient to match a job description generated from these findings only. Now, this may be a quirk of the search algorithm, but it does seem to demonstrate that in mid-2023 code is still important.
+
+
+## Conclusions
+
+
+
+## Code
+
+```{r, eval=FALSE}
+## Reproducing results will require the following libraries:
+library(httr)
+library(tidyverse)
+library(jsonlite)
+library(rvest)
+library(reticulate)
+```
+#### API functions
+```{r, eval=FALSE}
+##This chunk is concerned with getting the API function working
+
+## Write a function to get any given page. After that I can just iterate while there are still jobs to find :)
+
+get_adzuna_api <- function(api_id, api_key, page, 
+                           key_words = c("data", "analyst"), country = "ch") { #API ID and key are variables, so that they can remain secret
+  
+  key_words <- stringr::str_c(key_words[1], "%20", key_words[2]) #Can only take two key words. All needed for most data professions
+  api_call_string <- stringr::str_c("http://api.adzuna.com/v1/api/jobs/", 
+                                    country, "/search/", page, "?app_id=", 
+                                    api_id, "&app_key=", api_key,
+                                    "&results_per_page=20&what=", key_words,
+                                    "&max_days_old=730&salary_include_unknown=1&content-type=application/json")
+  api_return <- GET(api_call_string)
+  api_return_text <- content(api_return, "text")
+  api_return_df <- jsonlite::fromJSON(api_return_text)
+  
+  api_return_df$results
+}
+```
+
+```{r, eval=FALSE}
+## Test the function
+## Note that you will need 
+test <- get_adzuna_api(
+  "my_adzuna_id", 
+  "my_adzuna_token", 2) ##Requires an ID and key for reproduction. 
+
+
+test$location$display_name
+
+```
+
+```{r, eval=FALSE}
+## This code block is about removing unwanted columns from the API response and renaming other ones.
+## Functionalizing for easier integration into the automated pipeline downstream
+
+clean_adzuna_response <- function(adzuna_response) {
+  response_cleaned <- data.frame(
+    date_posted = adzuna_response$created,
+    job_title = adzuna_response$title,
+    company = adzuna_response$company$display_name,
+    location = adzuna_response$location$display_name,
+    website = adzuna_response$redirect_url
+  ) |>
+    filter(str_detect(website, "details")) #Adzuna links quite a few instances of external job boards
+  
+  
+  response_cleaned
+}
+```
+
+```{r, eval=FALSE}
+##Test clean_adzuna_response
+test2 <- clean_adzuna_response(test)
+write_csv(test2, "test_returns.csv")
+```
+
+#### Web scrape functions
+```{r, eval=FALSE}
+##Lets get a URL to visit
+##Note: the website links are out of date at time of publication.
+##For reproduction needs an up-to-date test.returns.csv
+test2 <- read_csv("test_returns.csv")
+test2$website[4]
+```
+
+```{r, eval=FALSE}
+### Parsing function to make loops easier to work with.
+
+parse_adzuna_data <- function (adzuna_http){
+  adzuna_html_response <- read_html(adzuna_http) #Get the website
+  adzuna_body <- adzuna_html_response |> #Extract the body of the job ad
+    html_nodes(".adp-body") |>
+    html_text()
+  
+  adzuna_body
+}
+
+```
+
+```{r, eval=FALSE}
+##Test the function: run for the length of a whole DF
+##Use for loop to ensure spacing between website hits
+##Pass if test_vector contains 15 long extracted strings
+
+### Commented out - don't want to run loops hitting people's websites by accident :)
+# test_vector <- c()
+# 
+# for (i in 1:nrow(test2)) { #test2 contains the readings from the newest set of previous tests
+#   adzuna_description <- parse_adzuna_data(test2$website[i])
+#   test_vector <- c(test_vector, adzuna_description)
+#   Sys.sleep(30)
+# }
+
+for (item in test_vector) {
+  item_trunc <- str_trunc(item, 50)
+  print(item_trunc)
+}
+```
+
+#### GPT 3.5 connection functions
+```{python, eval=FALSE}
+### Following the method from this course: https://www.deeplearning.ai/short-courses/chatgpt-prompt-engineering-for-developers/
+import openai
+import os
+import time
+
+##COMMENT UP THIS CODE!!!
+with open('/home/pete/Documents/gpt_key.txt') as t:
+  openai.api_key = t.readlines()[0].strip("\n")
+
+
+def get_completion(prompt, model="gpt-3.5-turbo", temperature = 0):
+    messages = [{"role": "user", "content": prompt}]
+    response = openai.ChatCompletion.create(
+        model=model,
+        messages=messages,
+        temperature=temperature, # this is the degree of randomness of the model's output
+    )
+    return response.choices[0].message["content"]
+
+```
+
+```{python, eval=FALSE}
+###Test connection
+get_completion("Can you please tell me if I'm connected to GPT?")
+```
+
+```{r, eval=FALSE}
+##Get a return to work with for dev
+test3 <- parse_adzuna_data(test2$website[2])
+test3
+```
+
+
+```{python, eval=FALSE}
+### Now lets pass a job description to Chat GPT and build a prompt
+adzuna_description = r.test3
+print(adzuna_description)
+```
+
+```{python, eval=FALSE}
+
+def summarize_adzuna(adzuna_description):
+  adzuna_summary = get_completion(
+    "Dear Chat GPT, could you please conduct the following actions on the test in square brackets: Identify all skills, characteristics and qualifications        required for the job and return them as itemized points in English. Split those into individual skills, with no more than two words per skill. Provide the return in JSON format please! [" + adzuna_description +"]"
+  )
+  return(adzuna_summary)
+
+
+```
+
+```{python, eval=FALSE}
+test4 =  summarize_adzuna(r.test3)
+print(test4)
+```
+
+#### Execute API calls
+```{r, eval = FALSE}
+n_responses <- 20 ## Lets not turn off the loop before we start
+page <- 1 ## Start at page 1
+adzuna_api_returns_20jul23 <- data.frame()  ##Take note of date when responses collected
+
+while (n_responses > 0) {
+  
+  current_response <- get_adzuna_api(
+    readLines("/home/pete/Documents/adzuna_api.txt")[1], 
+    readLines("/home/pete/Documents/adzuna_api.txt")[2], page) ##Run the API.
+  
+  page <- page + 1 #Increase the page number.
+  n_responses <-nrow(current_response) ## Check response count for the purposes of running the loop.
+  
+  current_response <- clean_adzuna_response(current_response) ## Different API returns give different numbers of columns. This should standardize and prevent crashes.
+  
+  adzuna_api_returns_20jul23 <- rbind(adzuna_api_returns_20jul23,
+                                          current_response) ## Bind to general results table.
+  
+  Sys.sleep(3) ##This is to make sure that we do not hit the 25 hits per minute limit on the API.
+}
+
+### Crashes out when API returns empty - at this stage all possible data collected
+```
+
+
+```{r, eval = FALSE}
+write_rds(adzuna_api_returns_20jul23, "adzuna_api_returns_20jul23.rds") ## Getting to use RDS format a bit more often.
+```
+
+
+#### Webscrape and analysis with GPT 3.5 
+
+```{r, eval = FALSE}
+##Wrapper function
+execute_scrape_and_prompt <- function (adzuna_address){
+  adzuna_raw_return <- parse_adzuna_data(adzuna_address)
+  py$summarize_adzuna(adzuna_raw_return) ## The py$ calls from the python side of the environment
+}
+```
+
+```{r, eval = FALSE}
+## I used data from two API calling sessions, a week apart. 
+## The .rds files are available at: https://github.com/pete-jacobsson/what_makes_a_data_analyst
+adzuna_api_returns_14jul23 <- readRDS("adzuna_api_returns_14jul23.rds")
+adzuna_api_returns_20jul23 <- readRDS("adzuna_api_returns_20jul23.rds")
+
+adzuna_api_returns <- rbind(adzuna_api_returns_14jul23, 
+                            adzuna_api_returns_20jul23) |>
+  distinct()
+
+```
+
+
+```{r, eval = FALSE}
+## The web scrape and analysis loop. Note that this will require new data to work as Adzuna website will have removed the July postings by now.
+
+skills <- c()
+
+
+for (i in 1:nrow(adzuna_api_returns)) {
+  
+  json_return <- TRUE ### Keep the return empty in case a webscrape or GPT call fails - we don't want to double record same entry
+  try({   ###The try function is here in case any web scrape fails
+    json_return <- execute_scrape_and_prompt(
+      adzuna_api_returns$website[i]
+      ) |>
+      fromJSON()
+
+  }, silent = TRUE
+  )
+  
+  if (is.logical(json_return)) {  ##If JSON return is logical, it means that something above failed, so we want to have an empty entry
+    skills_from_return <- c()
+    } else {
+    skills_from_return <- unlist(json_return)
+    }
+  
+  skills <- c(skills, skills_from_return)
+  json_return <- TRUE ### Keep the return empty in case a webscrape or GPT call fails - we don't want to double record same entry
+  
+  Sys.sleep(30) ## Given the time to webscrape and call GPT this should be redundant... but let's be polite.
+}
+
+write_rds(skills, "adzuna_skills.rds")
+
+
+```
+
+#### Cleaning the data
+```{r, eval=FALSE}
+##Standardize the strings
+skills <- read_rds("adzuna_skills.rds") |>
+  str_to_lower()
+
+skills_df <- data.frame(skills = skills) |>
+  group_by(skills) |>
+  summarize(
+    keyword_count = n()
+  ) |>
+  arrange(desc(keyword_count))
+```
+
+```{r, eval = FALSE}
+## Now we standardize the key terms
+key_terms <- c("analy", "english", "german", "french", "italian",
+               "excel", "python", "flexib", "business", "power", "azure", "aws", 
+               "creativ", "curio", "detail", "communicat|present", "report", "tableau",
+               "data quality", "trend", "vba", "project", "agile", 
+               "cloud", "compliance", "cooper|collab|team|interpers", "dashboard", "warehouse", 
+               "decision", "consulting", "sap", "data mana", "machine learn|ml",
+               "kpi", "leadership", "sql", "automation", "research", "reliab",
+               "rest|api", "stakeholder", "problem", "(?<!\\w)r(?!\\w)",
+               "logist"
+               )
+
+skills_df <- data.frame(key_terms = c(), count = c())
+
+for (term in key_terms) {
+  skill_count <- str_extract(skills, term) |>
+    na.omit() |>
+    length()
+  
+  skills_df <- skills_df |>
+    rbind(c(term, skill_count))
+  
+}
+
+skills_df <- skills_df |>
+  rename(
+    term =  1, count = 2
+  ) |>
+  mutate(count = as.numeric(count)) |> ##Note count got converted to chr silently in the previous step
+  arrange(desc(count))
+
+```
+
+
+```{r, eval = FALSE}
+###Transform abbreviations back to human readables
+skills_df <- skills_df |>
+  mutate(
+    term = case_when(   ### I could have used the default here to just focus on the terms that needed mending, but I decided I wanted nice, standardized names on the graph.
+      term == "analy" ~ "Analytics",
+      term == "english" ~ "English",
+      term == "german" ~ "German",
+      term == "french" ~ "French",
+      term == "italian" ~ "Italian",
+      term == "excel" ~ "Excel",
+      term == "python" ~ "Python",
+      term == "flexib" ~ "Flexible",
+      term == "business" ~ "Business awareness",
+      term == "power" ~ "Power BI",
+      term == "azure" ~ "Azure",
+      term == "aws" ~ "AWS",
+      term == "creativ" ~ "Creativity",
+      term == "curio" ~ "Curiosity",
+      term == "detail" ~ "Attention to detail",
+      term == "communicat|present" ~ "Communication and presentation skills",
+      term == "report" ~ "Reporting experience",
+      term == "tableau" ~ "Tableu",
+      term == "data quality" ~ "Data quality management",
+      term == "trend" ~ "Tren analysis",
+      term == "vba" ~ "VBA",
+      term == "project" ~ "Project management",
+      term == "agile" ~ "Agile",
+      term == "cloud" ~ "Cloud",
+      term == "compliance" ~ "Compliance",
+      term == "cooper|collab|team|interpers" ~ "Interpersonal and collaboration skills",
+      term == "dashboard" ~ "Dashboard design",
+      term == "warehouse" ~ "Data warehouse experience",
+      term == "decision" ~ "Decision making experience",
+      term == "consulting" ~ "Consulting experience",
+      term == "sap" ~ "SAP",
+      term == "data mana" ~ "Data management",
+      term == "machine learn|ml" ~ "Machine learning skills",
+      term == "kpi" ~ "KPIs",
+      term == "leadership" ~ "Leadership",
+      term == "sql" ~ "SQL/NoSQL",
+      term == "automation" ~ "Automation experience",
+      term == "research" ~ "Research experience",
+      term == "reliab" ~ "Proven reliability",
+      term == "rest|api" ~ "API skills",
+      term == "stakeholder" ~ "Stakeholder management",
+      term == "problem" ~ "Problem solving",
+      term == "(?<!\\w)r(?!\\w)" ~ "R",
+      term == "logist" ~ "Logistics"
+    )
+  )
+
+write_csv(skills_df, "skills_df.csv")
+```
+
