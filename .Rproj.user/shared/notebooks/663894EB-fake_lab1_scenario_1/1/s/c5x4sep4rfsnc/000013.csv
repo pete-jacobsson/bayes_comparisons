@@ -1,0 +1,9 @@
+"0","###Check fig
+jags_results_hpd |>
+  filter(str_detect(name, ""mu_instrument"")) |>
+  ggplot(aes(x = value, y = counts, fill = is_hpd)) +
+  geom_histogram(stat = ""identity"") +
+  geom_vline(xintercept = c(-2.5, 2.5)) +
+  facet_grid(rows=  vars(name))
+"
+"2","Warning: [38;5;232mIgnoring unknown parameters: `binwidth`, `bins`, and `pad`[39m"

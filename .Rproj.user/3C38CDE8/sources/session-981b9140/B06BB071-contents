@@ -187,14 +187,24 @@ hpd_extract <- cbind(HPDinterval(coda_samples)[[1]],
   mutate(
     name = case_when(
       name == "b0" ~ "baseline",
-      name == "b1[1]" ~ "instrument_1",
-      name == "b1[2]" ~ "instrument_2",
-      name == "b1[3]" ~ "instrument_3",
-      name == "b1[4]" ~ "instrument_4",
-      name == "b1[5]" ~ "instrument_5",
-      name == "b2[1]" ~ "operator_1",
-      name == "b2[2]" ~ "operator_2",
-      name == "b2[3]" ~ "operator_3"
+      name == "b1[1]" ~ "mu_instrument_1",
+      name == "b1[2]" ~ "mu_instrument_2",
+      name == "b1[3]" ~ "mu_instrument_3",
+      name == "b1[4]" ~ "mu_instrument_4",
+      name == "b1[5]" ~ "mu_instrument_5",
+      name == "b2[1]" ~ "mu_operator_1",
+      name == "b2[2]" ~ "mu_operator_2",
+      name == "b2[3]" ~ "mu_operator_3",
+      name == "s1[1]" ~ "sigma_instrument_1",
+      name == "s1[2]" ~ "sigma_instrument_2",
+      name == "s1[3]" ~ "sigma_instrument_3",
+      name == "s1[4]" ~ "sigma_instrument_4",
+      name == "s1[5]" ~ "sigma_instrument_5",
+      name == "s2[1]" ~ "sigma_operator_1",
+      name == "s2[2]" ~ "sigma_operator_2",
+      name == "s2[3]" ~ "sigma_operator_3",
+      name == "a1sd" ~ "mu_instrument_uncert",
+      name == "a2sd" ~ "mu_operator_uncert"
     )
   )
 
@@ -226,7 +236,7 @@ jags_results_hpd <- inner_join(
 ```{r}
 ###Check fig
 jags_results_hpd |>
-  filter(str_detect(name, "operator")) |>
+  filter(str_detect(name, "mu_instrument")) |>
   ggplot(aes(x = value, y = counts, fill = is_hpd)) +
   geom_histogram(stat = "identity") +
   geom_vline(xintercept = c(-2.5, 2.5)) +

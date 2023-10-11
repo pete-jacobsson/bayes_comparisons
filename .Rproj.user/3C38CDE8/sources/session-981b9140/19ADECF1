@@ -12,13 +12,13 @@
     "properties": {
         "expression": "hpd_extract",
         "caption": "hpd_extract",
-        "totalObservations": "9",
-        "displayedObservations": "9",
+        "totalObservations": "19",
+        "displayedObservations": "19",
         "variables": "3",
-        "cacheKey": "3077B74A",
+        "cacheKey": "A7F24592",
         "object": "hpd_extract",
         "environment": "",
-        "contentUrl": "grid_resource/gridviewer.html?env=&obj=hpd_extract&cache_key=3077B74A&max_cols=50",
+        "contentUrl": "grid_resource/gridviewer.html?env=&obj=hpd_extract&cache_key=A7F24592&max_cols=50",
         "preview": "0",
         "source_window_id": "",
         "Source": "Source"
