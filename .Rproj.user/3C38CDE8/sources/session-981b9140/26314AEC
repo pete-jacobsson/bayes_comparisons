@@ -12,13 +12,13 @@
     "properties": {
         "expression": "jags_results",
         "caption": "jags_results",
-        "totalObservations": "2623",
-        "displayedObservations": "2623",
+        "totalObservations": "23286",
+        "displayedObservations": "23286",
         "variables": "3",
-        "cacheKey": "1CEB7F1F",
+        "cacheKey": "EF3E99D9",
         "object": "jags_results",
         "environment": "",
-        "contentUrl": "grid_resource/gridviewer.html?env=&obj=jags_results&cache_key=1CEB7F1F&max_cols=50",
+        "contentUrl": "grid_resource/gridviewer.html?env=&obj=jags_results&cache_key=EF3E99D9&max_cols=50",
         "preview": "0",
         "source_window_id": "",
         "Source": "Source"
