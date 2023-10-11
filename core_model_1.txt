@@ -1,13 +1,11 @@
 
   model {
     for (i in 1:n_total) {
-      measurement[i] ~ dnorm( mu[i], 1 / (ySigma[instrument[i], operator[i]]) ^ 2)
+      measurement[i] ~ dnorm( mu[i], 1 / sd[i])
       mu[i] <- a0 + a1[instrument[i]] + a2[operator[i]]
+      sd[i] <- s1[instrument[i]] ^ 2 + s2[operator[i]] ^ 2
     }
     
-    for (j1 in 1:n_instruments) { for (j2 in 1:n_operators) {
-      ySigma[j1, j2] ~ dgamma(1.05, 0.01)
-    }}  
     a0 ~ dnorm(measurement_mean, 1 / 50)
 
     #
@@ -21,6 +19,17 @@
       a2[j2] ~ dnorm(0, 1 / a2sd) 
     }
     a2sd ~ dgamma(1.05, 0.01)
+    
+    
+    for (j1 in 1:n_instruments) { 
+      s1[j1] ~ dgamma(1.05, 0.01) 
+    }
+    
+    #
+    for (j2 in 1:n_operators) { 
+      s2[j2] ~ dgamma(1.05, 0.01)
+    }
+    
     
     #
     # for (j1 in 1:n_instruments) { for (j2 in 1:n_operators) {

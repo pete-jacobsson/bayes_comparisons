@@ -1,0 +1,42 @@
+model_string <- "
+  model {
+    for (i in 1:n_total) {
+      measurement[i] ~ dnorm( mu[i], 1 / (ySigma[instrument[i], operator[i]]) ^ 2)
+      mu[i] <- a0 + a1[instrument[i]] + a2[operator[i]]
+    }
+    
+    for (j1 in 1:n_instruments) { for (j2 in 1:n_operators) {
+      ySigma[j1, j2] ~ dgamma(1.05, 0.01)
+    }}  
+    
+    
+    a0 ~ dnorm(measurement_mean, 1 / 50)
+
+    #
+    for (j1 in 1:n_instruments) { 
+      a1[j1] ~ dnorm(0, 1 / a1sd) 
+    }
+    a1sd ~ dgamma(1.05, 0.01)
+    
+    #
+    for (j2 in 1:n_operators) { 
+      a2[j2] ~ dnorm(0, 1 / a2sd) 
+    }
+    a2sd ~ dgamma(1.05, 0.01)
+    
+    #
+    # for (j1 in 1:n_instruments) { for (j2 in 1:n_operators) {
+    # a1a2[j1, j2] ~ dnorm(0, 1/50)
+    # }}
+    ##Sum zero constraints
+    for (j1 in 1:n_instruments) { for (j2 in 1:n_operators) {
+      m[j1, j2] <- a0 + a1[j1] + a2[j2]
+    }}
+    b0 <- mean(m[1:n_instruments, 1:n_operators])
+    for ( j1 in 1:n_instruments ) { b1[j1] <- mean( m[j1,n_operators] ) - b0 }
+    for ( j2 in 1:n_operators ) { b2[j2] <- mean( m[1:n_instruments,j2] ) - b0 }
+}
+"
+
+writeLines(model_string, con = "core_model_1.txt")
+```

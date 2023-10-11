@@ -1,4 +1,0 @@
-"0","coda_samples <- as.mcmc.list(run_jags_out)"
-"0",""
-"0",""
-"0","autocorr.plot(coda_samples)"
