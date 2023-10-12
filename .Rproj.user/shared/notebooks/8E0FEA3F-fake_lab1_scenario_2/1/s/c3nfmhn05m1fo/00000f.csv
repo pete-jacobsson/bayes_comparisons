@@ -1,0 +1,6 @@
+"0","## Load packages"
+"0",""
+"0","library(tidyverse)"
+"0","library(rjags)"
+"0","library(runjags)"
+"0",""

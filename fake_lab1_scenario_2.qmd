@@ -1,5 +1,5 @@
 ---
-title: "Fake Lab 1 Scenario 1"
+title: "Fake Lab 1 Scenario 2"
 author: "Piotr Jacobsson"
 format: html
 ---
@@ -20,8 +20,8 @@ library(runjags)
 
 ```{r}
 ## Get the data
-fl1_sc1_url <- "https://raw.githubusercontent.com/pete-jacobsson/fake_lab/main/fake1_scenario1.csv" 
-fl1_sc1 <- read_csv(url(fl1_sc1_url))
+fl1_sc2_url <- "https://raw.githubusercontent.com/pete-jacobsson/fake_lab/main/fake1_scenario2.csv" 
+fl1_sc2 <- read_csv(url(fl1_sc2_url))
 
 ```
 
@@ -29,16 +29,16 @@ fl1_sc1 <- read_csv(url(fl1_sc1_url))
 
 ```{r}
 
-measurement <- fl1_sc1$measurement
-instrument <- as.numeric(as.factor(fl1_sc1$instrument))
-operator <- as.numeric(as.factor(fl1_sc1$operator))
+measurement <- fl1_sc2$measurement
+instrument <- as.numeric(as.factor(fl1_sc2$instrument))
+operator <- as.numeric(as.factor(fl1_sc2$operator))
 
-n_total <- nrow(fl1_sc1)
-n_instruments <- length(unique(fl1_sc1$instrument))
-n_operators <- length(unique(fl1_sc1$operator))
+n_total <- nrow(fl1_sc2)
+n_instruments <- length(unique(fl1_sc2$instrument))
+n_operators <- length(unique(fl1_sc2$operator))
 
-measurement_mean <- mean(fl1_sc1$measurement)
-measurement_sd <- sd(fl1_sc1$measurement)
+measurement_mean <- mean(fl1_sc2$measurement)
+measurement_sd <- sd(fl1_sc2$measurement)
 
 ```
 
@@ -365,3 +365,8 @@ jags_results_hpd |>
     y = "Probability"
     )
 ```
+
+Note: poor uncertainty increase detection, working detection of the actual issue.
+
+
+
