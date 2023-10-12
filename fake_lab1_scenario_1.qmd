@@ -155,7 +155,7 @@ colnames(jags_results) <- c( "mu_baseline", "mu_instrument_1", "mu_instrument_2"
                              "sigma_instrument_3", "sigma_instrument_4",
                              "sigma_instrument_5", "sigma_operator_1",
                              "sigma_operator_2", "sigma_operator_3",
-                             "mu_instrument_uncert", "mu_operator_uncert")
+                             "instrument_uncert", "operator_uncert")
 
 jags_results <- jags_results |>
   pivot_longer(cols = everything()) |>
@@ -203,8 +203,8 @@ hpd_extract <- cbind(HPDinterval(coda_samples)[[1]],
       name == "s2[1]" ~ "sigma_operator_1",
       name == "s2[2]" ~ "sigma_operator_2",
       name == "s2[3]" ~ "sigma_operator_3",
-      name == "a1sd" ~ "mu_instrument_uncert",
-      name == "a2sd" ~ "mu_operator_uncert"
+      name == "a1sd" ~ "instrument_uncert",
+      name == "a2sd" ~ "operator_uncert"
     )
   )
 
@@ -234,13 +234,14 @@ jags_results_hpd <- inner_join(
 
 
 ```{r}
-###Check fig
+###Check fig - mu
 jags_results_hpd |>
-  filter(str_detect(name, "mu_instrument")) |>
+  filter(str_detect(name, "mu_operator")) |>
   ggplot(aes(x = value, y = counts, fill = is_hpd)) +
   geom_histogram(stat = "identity") +
   geom_vline(xintercept = c(-2.5, 2.5)) +
-  facet_grid(rows=  vars(name))
+  facet_grid(rows=  vars(name)) +
+  xlim(c(-10, 10))
 ```
 
 ```{r}

@@ -19,7 +19,7 @@
 "
 "1","Following the progress of chain 1 (the program will wait for all chains to finish before continuing):
 "
-"1","Welcome to JAGS 4.3.0 on Wed Oct 11 12:54:37 2023"
+"1","Welcome to JAGS 4.3.0 on Thu Oct 12 15:35:28 2023"
 "1","
 "
 "1",""
@@ -37,17 +37,14 @@ Graph information:
 . Reading parameter file inits1.txt
 . Initializing model
 . Adapting 1000
--------------------------------------------------| 1000"
-"1","
-"
-"1",""
-"1","+++++++++++"
-"1","++++++++"
-"1","++++++++"
-"1","+++++++"
-"1","++++++"
+-------------------------------------------------| 1000
+++"
 "1","+++++++++"
-"1","+ 100%"
+"1","++++++++"
+"1","++++++++"
+"1","++++++++"
+"1","+++++++++"
+"1","++++++ 100%"
 "1","
 "
 "1",""
