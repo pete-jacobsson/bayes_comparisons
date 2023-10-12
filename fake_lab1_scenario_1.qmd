@@ -165,6 +165,11 @@ jags_results <- jags_results |>
     counts = n()
   )
 
+n_draws <- sum(jags_results$counts)
+
+jags_results <- jags_results |>
+  mutate(ratios = counts / n_draws)
+
 ```
 
 
@@ -237,11 +242,32 @@ jags_results_hpd <- inner_join(
 ###Check fig - mu
 jags_results_hpd |>
   filter(str_detect(name, "mu_operator")) |>
-  ggplot(aes(x = value, y = counts, fill = is_hpd)) +
-  geom_histogram(stat = "identity") +
+  ggplot(aes(x = value, y = ratios, fill = is_hpd, color = is_hpd)) +
+  geom_bar(stat = "identity") +
   geom_vline(xintercept = c(-2.5, 2.5)) +
   facet_grid(rows=  vars(name)) +
-  xlim(c(-10, 10))
+  xlim(c(-10, 10)) +
+  theme_bw() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.border = element_blank(),
+    axis.line = element_line(colour = "grey50", size = 0.5),
+    #legend.position = "none",
+    strip.background = element_rect(
+     color="white", fill="white"
+     ),
+     text = element_text(family = "Corbel"),
+    axis.text.x = element_text(size = 9)
+    ) +
+  scale_fill_manual(values = c("skyblue", "steelblue"), guide = "none") +
+  scale_color_manual(values = c("skyblue", "steelblue"), guide = "none")
+  labs(
+    title = "Impact of operator error",
+    subtitle = "Dark blue indicates the 95% HPD area",
+    x = "Offset magnitude",
+    y = "Probability"
+    )
 ```
 
 ```{r}
